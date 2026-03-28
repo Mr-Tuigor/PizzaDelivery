@@ -5,10 +5,10 @@ Here you can choose the ingredients for you pizza and choose the cheapest pizza 
 
 # want to run this on you machine? follow the below steps
 
-Step 1: Clone the project
-Step 2: create 2 terminals on first: "cd backendForPD", On second: "cd frontendForPD"
-Step 3: "npm i" on both the terminal
-Step 4: create ".env" file on backend folder and add these fields:
+Step 1: Clone the project\
+Step 2: create 2 terminals on first: "cd backendForPD", On second: "cd frontendForPD"\
+Step 3: "npm i" on both the terminal\
+Step 4: create ".env" file on backend folder and add these fields:\
 
     JWT_SECRET="securet_kiwi"
     JWT_EXPIRE=60d
