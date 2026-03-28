@@ -1,0 +1,6 @@
+
+backendForPD/.env
+backendForPD/node_modules
+backendForPD/config
+
+.vscode
