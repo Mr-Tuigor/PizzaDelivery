@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
   const [username, setUsername] = useState("");
@@ -13,6 +13,7 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
 
 const handleSubmit = async (e) => {
@@ -29,7 +30,7 @@ const handleSubmit = async (e) => {
 
     alert(msg);
     toast({ title: "Success", description: msg });
-
+    navigate('/login');
   } catch (err) {
     console.log("Register error:", err);
     
