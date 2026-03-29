@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const Ingredient = require('../models/Ingrediant');
-
+const UserModel = require('../models/User');
+const { Error } = require('mongoose');
 
 // To cache the ingredients details
 let cachedIngredients = [];
@@ -17,21 +18,28 @@ refreshIngredientCache();
 
 exports.verifyAndPlaceOrder = async (req, res)=>{
   try{
-  let { pizzas, totalAmount } = req.body;
+  let { pizzas} = req.body;
+  let totalAmount = 0;
 
-  // let ingredients = await Ingredient.find();
-
+  // console.log(cachedIngredients);
   try{
     const id_of_pizza_ingredients = pizzas.map(pizza => {
-
-      const IngredientId = (name) => cachedIngredients.find(ing => ing.name === name)?._id;
+      let pricePerPizza = 0;
+      const IngredientId = (name) => cachedIngredients.find(ing => {
+        if(ing.name === name){
+        pricePerPizza+= ing.priceAdd;
+        totalAmount+= ing.priceAdd;
+        }
+        return ing.name === name
+      })?._id;
+      
       return {
         base: IngredientId(pizza.base),
         sauce: IngredientId(pizza.sauce),
         cheese: IngredientId(pizza.cheese),
         veggies: pizza.veggies.map((veggie) => IngredientId(veggie)),
         meats: pizza.meats.map((meat) => IngredientId(meat)),
-        price: pizza.price
+        price: pricePerPizza
       }
   });
 
@@ -40,7 +48,11 @@ exports.verifyAndPlaceOrder = async (req, res)=>{
 
   try{
     const newOrder = new Order({
-      user: req.user._id,
+      user:{
+      userId: req.user._id,
+      username: req.user.username,
+      userEmail: req.user.email,
+      },
       pizzas: id_of_pizza_ingredients,
       totalAmount,
       razorpayOrderId: razorpay_orderId,
@@ -50,7 +62,14 @@ exports.verifyAndPlaceOrder = async (req, res)=>{
     await newOrder.save();
 
     res.status(200).json({
-      message: "Order Created Successfully"
+      message: "Order Placed Successfully",
+      orderDetails: {
+      user: req.user.username,
+      pizzas: id_of_pizza_ingredients,
+      totalAmount,
+      razorpayOrderId: razorpay_orderId,
+      razorpayPaymentId: razorpay_paymentId,
+      }
     });
 
   } catch(err){
@@ -96,12 +115,33 @@ exports.userOrders = async (req, res)=>{
 
 }
 
+exports.getAllOrders = async(req, res)=>{
+  try{
+  const orders = await Order.find().lean();
+  
+  if(orders.length < 1){
+    throw new Error("There are no orders to show.")
+  }
+  // const user = await UserModel.findOne({orders})
+  res.status(200).json({
+      orders
+    });
 
+  } catch(err){
+    res.status(400).json({
+      message: err.message
+    })
+  }
+
+}
 
 exports.inventoryDetails = async (req, res)=>{
   try{
     const ingredients = await Ingredient.find();
 
+    res.status(200).json({
+      ingredients
+    })
   } catch(error){
     res.status(400).json({
       message: error.message
