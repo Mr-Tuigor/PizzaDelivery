@@ -30,6 +30,18 @@ const AdminDashboard = () => {
     Promise.all([fetchOrders(), fetchInventory()]).finally(() => setLoading(false));
   }, []);
 
+  const statusColor = (status) => {
+  switch (status) {
+    case "received": return "bg-secondary text-secondary-foreground";
+    case "in_kitchen": return "bg-purple-500 text-balck hover:bg-purple-400";
+    case "sent_to_delivery": return "bg-blue-500 text-balck hover:bg-blue-400";
+    case "delivered": return "bg-green-500 text-green-800 hover:bg-green-400";
+    case "cancelled": return "bg-red-400 text-red-800 hover:bg-red-500"
+    default: return "bg-muted text-muted-foreground";
+  }
+};
+
+
   const updateOrderStatus = async (orderId, status) => {
     try {
       await api(`/orders/${orderId}/status`, { method: "PUT", body: { status } });
@@ -42,13 +54,14 @@ const AdminDashboard = () => {
 
   const updateStock = async (ingredientId, stock) => {
     try {
-      await api(`/pizza/inventory/${ingredientId}`, { method: "PUT", body: { stock } });
+      await api(`/pizza/updateInventory/${ingredientId}`, { method: "PUT", body: { stock } });
       toast({ title: "Stock updated" });
       fetchInventory();
     } catch (err) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
   };
+
 
   if (loading) return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
 
@@ -75,21 +88,27 @@ const AdminDashboard = () => {
                     <div>
                       <p className="font-medium">Order #{order._id.slice(-6)}</p>
                       <p className="text-sm text-muted-foreground">
-                        {typeof order.user === "object" ? `${order.user.name} (${order.user.email})` : order.user}
+                        {typeof order.user === "object" ? `${order.user.username} (${order.user.userEmail})` : order.user}
                       </p>
                       <p className="text-sm text-muted-foreground">₹{order.totalAmount} • {new Date(order.createdAt).toLocaleString()}</p>
                       <p className="text-sm mt-1">{order.pizzas.length} pizza(s)</p>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      <Badge>{order.status}</Badge>
+                      <Badge className={statusColor(order.status)}>{order.status}</Badge>
+                      {(order.status === "delivered" || order.status === "cancelled") || (
                       <Select value={order.status} onValueChange={(val) => updateOrderStatus(order._id, val)}>
                         <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Order Received">Order Received</SelectItem>
-                          <SelectItem value="In the Kitchen">In the Kitchen</SelectItem>
-                          <SelectItem value="Sent to Delivery">Sent to Delivery</SelectItem>
+                          
+                          {order.status === "received" && <SelectItem value="received">Order Received</SelectItem>}
+                          {(order.status === "received" || order.status === "in_kitchen") && <SelectItem value="in_kitchen">In the Kitchen</SelectItem>}
+                          <SelectItem value="sent_to_delivery">Sent to Delivery</SelectItem>
+                          {/* {(order.status !== "received") && <SelectItem value="sent_to_delivery">Sent to Delivery</SelectItem>} */}
+                          <SelectItem value="cancelled">Order Cancelled</SelectItem>
+                          
                         </SelectContent>
                       </Select>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -102,7 +121,7 @@ const AdminDashboard = () => {
           <div>
             <h2 className="text-lg font-semibold mb-3">Inventory</h2>
             <div className="grid gap-3">
-              {["base", "sauce", "cheese", "veggies", "meats"].map((category) => (
+              {["base", "sauce", "cheese", "veggie", "meat"].map((category) => (
                 <div key={category}>
                   <h3 className="font-medium capitalize mb-2">{category}</h3>
                   {inventory
