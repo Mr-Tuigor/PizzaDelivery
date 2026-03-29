@@ -10,23 +10,18 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { user, login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    api("/auth/me")
-      .then((data) => 
-        {
-          if (data.user.role === "admin"){
-            navigate("/admin");
-          }
-          else{
-            navigate("/dashboard")
-          }
-      })
-      .catch(() => {});
-  }, []);
+    // api("/auth/me")
+    //   .then((data) => navigate('/dashboard'))
+    //   .catch(() => {});
+    if(user){
+      navigate("/dashboard")
+    }
+  }, [user,navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
