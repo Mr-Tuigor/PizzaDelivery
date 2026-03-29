@@ -1,25 +1,52 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { set } from "react-hook-form";
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [defaultPizzas, setDefaultPizzas] = useState([])
   const [ingredients, setIngredients] = useState([]);
+  const { toast } = useToast();
+  // let isSelected = false;
   const navigate = useNavigate();
 
-  console.log(defaultPizzas);
+  // console.log(defaultPizzas);
   let i = 0;
   useEffect(() =>{
     api("pizza/get-default-pizzas")
     .then(data => {setDefaultPizzas(data.defaultPizzas); setIngredients(data.ingredients)})
     .catch((err) => toast({ title: "Error", description: err.message, variant: "destructive" }))
     .finally(() => setLoading(false));
+    // setDefaultPizzas(prev => prev.map(pizza => ({...pizza, isSelected: false})));
   }, []);
+
+
+  const handleAddToCart = (pizza) => {
+    if (!pizza.base || !pizza.sauce || !pizza.cheese) {
+      toast({ title: "Please select base, sauce, and cheese", variant: "destructive" });
+      return;
+    }
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    cart.push({
+      base: ingredients[pizza.base],
+      sauce: ingredients[pizza.sauce],
+      cheese: ingredients[pizza.cheese],
+      veggies: pizza.veggies.map((v) => ingredients[v]),
+      meats: pizza.meats.map((m) => ingredients[m]),
+      price: pizza.price,
+    });
+    localStorage.setItem("cart", JSON.stringify(cart));
+    toast({ title: "Pizza added to cart! 🍕", description: `pizza details: base - ${ingredients[pizza.base]}\nsauce - '${ingredients[pizza.sauce]},\ncheese - ${ingredients[pizza.cheese]}\nveggies - ${pizza.veggies.map((v) => ingredients[v])}\nmeats - ${pizza.meats.map((m) => ingredients[m])}` });
+    navigate("/cart");
+  };
+
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -28,9 +55,9 @@ const Dashboard = () => {
           <h1 className="text-2xl font-bold">🍕 Welcome, {user?.username}</h1>
           <div className="flex gap-2">
             {user?.role === "admin" && (
-              <Button variant="outline" onClick={() => navigate("/admin")}>Admin Panel</Button>
+              <Button className="cursor-pointer" variant="outline" onClick={() => navigate("/admin")}>Admin Panel</Button>
             )}
-            <Button variant="ghost" onClick={logout}>Logout</Button>
+            <Button className="cursor-pointer" variant="ghost" onClick={logout}>Logout</Button>
           </div>
         </div>
 
@@ -59,21 +86,27 @@ const Dashboard = () => {
             
            <Card key={pizza._id} className="mb-3"> 
               <CardHeader className="pb-2">
+                  <Checkbox
+                    className="cursor-pointer"
+                    // checked = { pizza.isSelected || false }
+                    onCheckedChange = {()=> setDefaultPizzas(prev => prev.map(p => (p._id === pizza._id)? {...p, isSelected: !p.isSelected}: p))}
+                  /> 
+                {pizza.isSelected && <Button onClick={()=> {console.log(pizza);return handleAddToCart(pizza)}}>Add to Cart</Button>}
                 <div className="flex justify-between items-center">
                   <CardTitle className="text-base">Default #{pizza._id.slice(-6)}</CardTitle>
-                 
+                  
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  • ₹{0}
+                  • ₹{pizza.price}
                 </p>
               </CardHeader>
               <CardContent>
                 {
                 
                   <p key={pizza._id.slice(-6)} className="text-sm text-muted-foreground">  <br />
-                    Pizza {++i}: <br /> Base: {ingredients[String(pizza.base)]},<br /> Sauce: {ingredients[String(pizza.sauce)]},<br /> Cheese: {ingredients[String(pizza.cheese)]},<br />
-                    Veggies: {pizza.veggies?.length > 0 && ` ${pizza.veggies.map(veggie => ingredients[String(veggie)] + " ")}`},<br />
-                    Meats: {pizza.meats?.length > 0 && ` ${pizza.meats.map(meat => ingredients[String(meat)] + " ")}`}
+                    Pizza {++i}: <br /> Base: {ingredients[pizza.base]},<br /> Sauce: {ingredients[pizza.sauce]},<br /> Cheese: {ingredients[pizza.cheese]},<br />
+                    Veggies: {pizza.veggies?.length > 0 && ` ${pizza.veggies.map(veggie => ingredients[veggie] + " ")}`},<br />
+                    Meats: {pizza.meats?.length > 0 && ` ${pizza.meats.map(meat => ingredients[meat] + " ")}`}
                   </p>
                 }
               </CardContent>
