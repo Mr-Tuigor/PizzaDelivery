@@ -34,7 +34,7 @@ exports.updateInventory = async (req, res) => {
     const { id } = req.params;
     const { stock } = req.body;
     
-    const item = await Ingredient.findByIdAndUpdate(id, { stock }, { new: true });
+    const item = await Ingredient.findByIdAndUpdate(id, { stock }, { returnDocument: 'after' });
     res.status(200).json({ message: "Stock Updated", item });
   } catch (error) {
     res.status(500).json({ message: "Update failed", error });
@@ -157,11 +157,11 @@ exports.getDefaultPizzas = async (req, res) =>{
   try{
   const pizzas = await DefaultPizzas.find().lean();
   let ingredientsObject = {};
-    console.log(pizzas);
+    
     cachedIngredients.forEach(ing =>{
     ingredientsObject[ing._id] = ing.name;
   });
-  console.log(ingredientsObject);
+
     res.status(200).json({
       defaultPizzas: pizzas,
       ingredients: ingredientsObject
