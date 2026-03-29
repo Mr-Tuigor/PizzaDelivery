@@ -127,7 +127,7 @@ const PizzaBuilder = () => {
                   <button
                     key={item._id}
                     onClick={() => selectItem(item)}
-                    className={`p-3 rounded-lg border-2 text-left transition-colors ${
+                    className={`cursor-pointer p-3 rounded-lg border-2 text-left transition-colors ${
                       isSelected(item)
                         ? "border-primary bg-primary/10"
                         : "border-border hover:border-primary/50"
@@ -141,14 +141,14 @@ const PizzaBuilder = () => {
             )}
 
             <div className="flex justify-between items-center mt-6">
-              <Button variant="outline" onClick={() => setCurrentStep((s) => s - 1)} disabled={currentStep === 0}>
+              <Button className="cursor-pointer" variant="outline" onClick={() => setCurrentStep((s) => s - 1)} disabled={currentStep === 0}>
                 Back
               </Button>
               <span className="font-semibold">Total: ₹{getPrice()}</span>
               {currentStep < STEPS.length - 1 ? (
-                <Button onClick={() => setCurrentStep((s) => s + 1)} disabled={!canProceed()}>Next</Button>
+                <Button className="cursor-pointer" onClick={() => setCurrentStep((s) => s + 1)} disabled={!canProceed()}>Next</Button>
               ) : (
-                <Button onClick={handleAddToCart}>Add to Cart</Button>
+                <Button className="cursor-pointer" onClick={handleAddToCart}>Add to Cart</Button>
               )}
             </div>
           </CardContent>
