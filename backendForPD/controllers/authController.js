@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 // generates token for browser
 function getToken(user, res) {
     try{
-    const token = jwt.sign({ id: user._id, role:user.role }, process.env.JWT_SECRET,{
+    const token = jwt.sign({ id: user._id, username:user.username, role:user.role, email: user.email }, process.env.JWT_SECRET,{
         expiresIn: process.env.JWT_EXPIRE
     });
 
