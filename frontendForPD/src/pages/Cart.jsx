@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 
+
 const Cart = () => {
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -50,9 +51,9 @@ const Cart = () => {
       
       const data = await api("/orders/create", {
         method: "POST",
-        body: { pizzas: cart.filter(c => c.selected), totalAmount: total },
+        body: { pizzas: cart.filter(c => c.selected)},
       });
-
+      toast({title: "Thank you", description: data.message});
       // const options = {
       //   key: data.razorpayKeyId,
       //   amount: data.razorpayOrder.amount,
